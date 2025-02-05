@@ -3,6 +3,8 @@ import streamlit as st
 import folium
 from folium.plugins import MarkerCluster
 import streamlit.components.v1 as components
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 @st.cache_data
 def data_preprocessing():
@@ -46,7 +48,29 @@ def top50(bikes):
     
     components.html(map._repr_html_(), height=500)
 
+def time_analysis(bikes):
+    hourly_ride = bikes.groupby('시간대', as_index=False)['자전거번호'].count()
+    weekday_ride = bikes.groupby('요일', as_index=False)['자전거번호'].count()
+
+    fig, axes = plt.subplots(2, 1, figsize=(21, 6))
+
+    sns.barplot(data=hourly_ride, x='시간대', y='자전거번호', ax=axes[0])
+    sns.lineplot(data=weekday_ride, x='요일', y='자전거번호', ax=axes[1])
+
+    st.pyplot(fig)
+
+
+def bike_main():
+    tab1, tab2, tab3 = st.tabs(["데이터 보기", "인기대여소50", "시간대별 분석"])
+
+    with tab1:
+        data = data_preprocessing()
+        st.dataframe(data.head(20)) 
+    with tab2:
+        top50(data)
+    with tab3:
+        time_analysis(data)
+
+
 if __name__ == '__main__':
-    data = data_preprocessing()
-    st.dataframe(data.head(20))    
-    top50(data)
+    bike_main()
